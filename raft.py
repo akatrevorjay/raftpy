@@ -16,6 +16,19 @@ Entry committed if known to be stored on majority of servers
     - Durable, will eventually be executed by state machines
 """
 
+"""
+Log Consistency
+
+High level of coherency between logs:
+    If log entries on different servers have same index and term:
+        They store the same command
+        The logs are identical in all preceding entries
+
+        TODO ASCII ART
+
+    If a given entry is committed, all preceding entries are also committed
+"""
+
 
 class Log(object):
 
@@ -179,6 +192,24 @@ class RaftBase(object):
 class Follower(RaftBase):
 
     """ Completely passive (issues no RPCs, responds to incoming RPCs). """
+
+    def append_entries(self, sender, prev_index=None, prev_term=None, entry=None):
+        """ AppendEntries RPC call.
+
+        If no data is provided, consider it a heartbeat from the sender.
+
+        Each AppendEntries RPC contains index, term of entry preceding new ones.
+        Follower must contain matching entry; otherwise it rejects request.
+        Implements an induction step, ensures coherency.
+        """
+
+        if not prev_index or not prev_term or not entry:
+            self.heartbeat(sender)
+
+        # TODO
+
+    def heartbeat(self, sender):
+        pass
 
 
 class Candidate(RaftBase):
