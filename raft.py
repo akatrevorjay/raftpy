@@ -324,3 +324,45 @@ class Leader(RaftBase):
 
     Sends empty AppendEntries heartbeats to all followers.
     """
+
+
+"""
+Client Protocol
+
+Send commands to Leader
+    If Leader is unknown, contact any server
+    If contacted server is not Leader, it will redirect client to Leader
+
+Leader does not respond until command has been logged, committed,
+and executed by leader's state machine
+
+If request times out (e.g: Leader crash)
+    Client reissues command to some other server
+    Eventually redirected to new leader
+    Retry request with new Leader
+
+
+What if Leader crashes after executing command, but before responding?
+    - Must not execute command twice
+
+Solution: client embeds a unique ID in each command
+    - Server includes ID in log entry
+    - Before accepting command, leader checks it's log for entry with that ID
+    - If ID found in log, ignore new command, return response from old command
+
+Result: exactly-once semantics as long as client doesn't crash
+"""
+
+
+"""
+Configuration changes
+
+System configuration:
+    ID, address of each server
+    Determines what constitutes a majority
+
+Consensus mechanism must support changes in the configuration:
+    Replace failed machine
+    Change degree of replication
+"""
+
