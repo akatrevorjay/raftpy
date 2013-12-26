@@ -299,6 +299,24 @@ When Follower overwrites inconsistent entry, it deletes all subsequent entries.
 
 """
 
+"""
+Neutralizing Old Leaders
+
+Deposed Leaders may not be dead:
+    Temporarily disconnected from network
+    Other servers elect new Leader
+    Old Leader becomes reconnected, attempts to commit log entries
+
+Terms used to detect stale Leaders (and Candidates):
+    Every RPC contains Term of sender
+
+    If Sender's Term is older, RPC is rejected, sender reverts to Follower and
+    updates it's Term
+
+Election updates Terms of majority of servers
+    Deposed server cannot commit new log entries
+"""
+
 
 class Leader(RaftBase):
 
