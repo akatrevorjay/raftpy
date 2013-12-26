@@ -199,7 +199,7 @@ class Follower(RaftBase):
         If no data is provided, consider it a heartbeat from the sender.
 
         Each AppendEntries RPC contains index, term of entry preceding new ones.
-        Follower must contain matching entry; otherwise it rejects request.
+        Follower must contain matching previous entry; otherwise it rejects request.
         Implements an induction step, ensures coherency.
         """
 
@@ -217,6 +217,66 @@ class Candidate(RaftBase):
     """ Used to elect a new leader. """
 
 
+"""
+Leader Changes
+
+At beginning of new leader's term:
+    Old leader may have left entries partially replicated
+    No special steps by new leader: just start normal operation
+    Leader's log is "the truth"
+    Will eventually make follower's logs identical to leader's
+    Multiple crashes can leave many extraneous log entries
+
+    TODO ASCII ART
+"""
+
+
+"""
+Safety Requirement
+
+Once a log entry has neen applied to a state machine, no other state machine
+must apply a different value for that log entry.
+
+Raft safety property:
+    If a leader has decided that a log entry is committed, that entry will be
+    present in the logs of all future leaders.
+
+This guarantees the safety requirement:
+    Leaders never overwrite entries in their logs
+    Only entries in the leader's log can be committed
+    Entries must be committed before applying to state machine
+
+    Committed --------------------------> Present in future leader's logs
+    ^ Restrictions on committment         ^ Restrictions on leader election
+
+"""
+
+
+"""
+Picking the Best Leader
+
+    Can't tell which entries are committed!
+
+        TODO ASCII ART
+
+    During elections, choose candidate with log most likely to contain all
+    committed entries
+
+        - Candidates include log info in RequestVote RPCs (index, term of last
+        log entry)
+
+        - Voting server V denied vote if it's log is "more complete":
+            (lastTerm(V) > lastTerm(C) ||
+            (lastTerm(V) == lastTerm(C) && (lastIndex(V) > lastIndex(C)
+
+        - Leader will have "most complete" log among electing majority
+
+"""
+
+
 class Leader(RaftBase):
 
-    """ Handles all client interactions, log replication. """
+    """ Handles all client interactions, log replication.
+
+    Sends empty AppendEntries heartbeats to all followers.
+    """
