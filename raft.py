@@ -196,7 +196,7 @@ class Follower(RaftBase):
     def append_entries(self, sender, prev_index=None, prev_term=None, entry=None):
         """ AppendEntries RPC call.
 
-        If no data is provided, consider it a heartbeat from the sender, but still
+        If no entry is provided, consider it a heartbeat from the sender, but still
         perform consistency checks and reject or pass as allowed.
 
         Each AppendEntries RPC contains index, term of entry preceding new ones.
@@ -364,5 +364,26 @@ System configuration:
 Consensus mechanism must support changes in the configuration:
     Replace failed machine
     Change degree of replication
+
+Cannot switch directly from one configuration to another: conflicting majorities
+could arise.
+
+    TODO ASCII ART
+"""
+
+"""
+Joint Consensus
+
+Raft uses a 2-phase approach:
+    Intermediate phase uses joint consensus (needs majority of both old and new
+    configurations for elections, committment)
+
+    Configuration change is just a log entry; applied immediately on receipt
+    (committed or not)
+
+    Once joint consensus is committed, begin replicating log entry for final
+    configuration
+
+    TODO ASCII ART
 """
 
