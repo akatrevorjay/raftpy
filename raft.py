@@ -196,12 +196,15 @@ class Follower(RaftBase):
     def append_entries(self, sender, prev_index=None, prev_term=None, entry=None):
         """ AppendEntries RPC call.
 
-        If no data is provided, consider it a heartbeat from the sender.
+        If no data is provided, consider it a heartbeat from the sender, but still
+        perform consistency checks and reject or pass as allowed.
 
         Each AppendEntries RPC contains index, term of entry preceding new ones.
         Follower must contain matching previous entry; otherwise it rejects request.
         Implements an induction step, ensures coherency.
         """
+
+        # TODO Consistency checks
 
         if not prev_index or not prev_term or not entry:
             self.heartbeat(sender)
@@ -270,6 +273,29 @@ Picking the Best Leader
             (lastTerm(V) == lastTerm(C) && (lastIndex(V) > lastIndex(C)
 
         - Leader will have "most complete" log among electing majority
+
+"""
+
+
+"""
+Repairing Follower Logs
+
+New Leader must make Follower logs consistent with it's own
+    - Delete extraneous entries
+    - Fill in missing entries
+
+Leader keeps nextIndex for each Follower:
+    - Index of next log entry to send to that Follower
+    - Initialized to (1 + Leader's last index)
+
+When AppendEntries consistency check fails, decrement nextIndex for Follower
+and try again
+
+    TODO ASCII ART
+
+When Follower overwrites inconsistent entry, it deletes all subsequent entries.
+
+    TODO ASCII ART
 
 """
 
